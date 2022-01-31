@@ -16,7 +16,6 @@ const checkOs = () => {
 }
 
 const findInCache = (version) => {
-    console.log(version)
     const dir = tc.find(TOOL_NAME, version);
     if (dir && dir.length > 0) {
         return dir;
@@ -25,16 +24,24 @@ const findInCache = (version) => {
     }
 }
 
-const downloadAndBuild = async (version) => {
-    const url = `https://github.com/rui314/mold/archive/refs/tags/${version}.zip`
-    const moldZip = await tc.downloadTool(url)
-    const moldUnzipped = await tc.extractZip(moldZip)
+const getStripPrefix = async (moldUnzipped) => {
     const out = await exec.getExecOutput(`ls ${moldUnzipped}`)
     if (out.exitCode !== 0) {
         throw new Error(`Can't strip path: ${out}`)
     }
-    const path = `${moldUnzipped}/${out.stdout.trim()}`
-    exec.exec(`make -j2 CXX=clang++ CC=clang -C ${path}`)
+    return out.stdout.trimEnd()
+}
+
+
+const downloadAndBuild = async (version) => {
+    const url = `https://github.com/rui314/mold/archive/refs/tags/${version}.zip`
+    const moldZip = await tc.downloadTool(url)
+    const moldUnzipped = await tc.extractZip(moldZip)
+    const stripPrefix = await getStripPrefix(moldUnzipped)
+    const path = `${moldUnzipped}/${stripPrefix}`
+    if (0 !== await exec.exec(`make -j CXX=clang++ CC=clang`, [], { cwd: path })) {
+        throw new Error(`Can not build mold`)
+    }
     const cachedPath = await tc.cacheDir(path, TOOL_NAME, version);
     return cachedPath
 }
@@ -47,7 +54,12 @@ const run = async () => {
         if (!bin) {
             bin = await downloadAndBuild(version);
         }
-        core.addPath(bin);
+        core.addPath(bin)
+
+        const make_default = core.getInput('default', { required: true });
+        if (make_default) {
+            await exec.exec(`sudo cp ${bin}/mold /usr/bin/ld`)
+        }
     } catch (err) {
         // setFailed logs the message and sets a failing exit code
         core.setFailed(err.message);

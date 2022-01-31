@@ -1,5 +1,5 @@
 name: 'use mold'
-description: 'Makes mold default linker on Unix-based OS'
+description: 'Makes mold linker available on Unix-based OS'
 author: 'Warchant'
 inputs:
   version:
@@ -7,6 +7,10 @@ inputs:
     required: false
     # https://github.com/rui314/mold/releases/tag/v1.0.3
     default: 'v1.0.3'
+  default:
+    description: 'If true, will replace /usr/bin/ld with mold'
+    required: true
+    default: false
 runs:
   using: 'node16'
   main: 'dist/index.js'

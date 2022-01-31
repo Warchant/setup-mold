@@ -3,19 +3,21 @@ name: CI
 on:
   push:
     branches:
-    - master
+    - main
   pull_request:
     branches:
-    - master
+    - main
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v1
     - name: Setup mold
       uses: ./
+      with: 
+        default: true
     - name: run mold
       run: mold --help
+    - name: run ld
+      run: ld --help
