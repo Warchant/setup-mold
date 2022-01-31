@@ -1,6 +1,6 @@
 # setup-mold javascript action
 
-Github Action to intall mold (https://github.com/rui314/mold) in PATH or as /usr/bin/ld.
+Github Action to install mold (https://github.com/rui314/mold) in PATH or as `/usr/bin/ld`.
 
 ## Inputs
 
@@ -10,7 +10,7 @@ Github Action to intall mold (https://github.com/rui314/mold) in PATH or as /usr
 
 ## `default`
 
-**Required** If true, will setup mold as /usr/bin/ld. Default `false`.
+**Required** If true, will setup mold as `/usr/bin/ld`. Default `false`.
 
 ## Example usage
 
