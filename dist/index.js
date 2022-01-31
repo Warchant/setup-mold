@@ -5570,7 +5570,6 @@ var __webpack_exports__ = {};
 const core = __nccwpck_require__(186);
 const tc = __nccwpck_require__(784);
 const exec = __nccwpck_require__(514);
-const io = __nccwpck_require__(436);
 
 const TOOL_NAME = 'mold'
 

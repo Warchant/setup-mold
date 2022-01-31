@@ -1,5 +1,3 @@
-# use-mold
-
 # setup-mold javascript action
 
 Github Action to intall mold (https://github.com/rui314/mold) in PATH or as /usr/bin/ld.
