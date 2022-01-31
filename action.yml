@@ -1,0 +1,12 @@
+name: 'use mold'
+description: 'Makes mold default linker on Unix-based OS'
+author: 'Warchant'
+inputs:
+  version:
+    description: 'mold version'
+    required: false
+    # https://github.com/rui314/mold/releases/tag/v1.0.3
+    default: 'v1.0.3'
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
