@@ -5576,9 +5576,9 @@ const TOOL_NAME = 'mold'
 const checkOs = () => {
     switch (process.platform) {
         case 'win32':
-            throw new Error(`Windows runner is not supported`)
+            throw new Error(`Windows runners are not supported`)
         case 'darwin':
-            return 'macosx'
+            return 'macos'
         default:
             return 'linux'
     }
@@ -5608,7 +5608,7 @@ const downloadAndBuild = async (version) => {
     const moldUnzipped = await tc.extractZip(moldZip)
     const stripPrefix = await getStripPrefix(moldUnzipped)
     const path = `${moldUnzipped}/${stripPrefix}`
-    if (0 !== await exec.exec(`make -j CXX=clang++ CC=clang`, [], { cwd: path })) {
+    if (0 !== await exec.exec(`make -j CC=clang CXX=clang++`, [], { cwd: path })) {
         throw new Error(`Can not build mold`)
     }
     const cachedPath = await tc.cacheDir(path, TOOL_NAME, version);
@@ -5617,17 +5617,21 @@ const downloadAndBuild = async (version) => {
 
 const run = async () => {
     try {
-        checkOs();
+        const os = checkOs();
         const version = core.getInput('version', { required: true });
         let bin = findInCache(version);
         if (!bin) {
             bin = await downloadAndBuild(version);
         }
-        core.addPath(bin)
+        core.addPath(bin);
 
-        const make_default = core.getInput('default', { required: true });
+        const make_default = core.getInput('default', { required: false }) || false;
         if (make_default) {
-            await exec.exec(`sudo cp ${bin}/mold /usr/bin/ld`)
+            if (os === 'macos') {
+                core.warning("MacOS does not allow this action to overwrite /usr/bin/ld. `mold` is added to PATH.");
+                return;
+            }
+            await exec.exec(`sudo cp ${bin}/mold /usr/bin/ld`);
         }
     } catch (err) {
         // setFailed logs the message and sets a failing exit code

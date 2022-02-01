@@ -9,7 +9,7 @@ inputs:
     default: 'v1.0.3'
   default:
     description: 'If true, will replace /usr/bin/ld with mold'
-    required: true
+    required: false
     default: false
 branding:
   icon: 'arrow-up'
