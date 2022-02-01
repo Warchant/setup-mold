@@ -2,6 +2,8 @@
 
 Github Action to install mold (https://github.com/rui314/mold) in PATH or as `/usr/bin/ld`.
 
+Supports only Linux runners.
+
 ## Inputs
 
 ## `version`

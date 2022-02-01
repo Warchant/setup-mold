@@ -7,9 +7,8 @@ const TOOL_NAME = 'mold'
 const checkOs = () => {
     switch (process.platform) {
         case 'win32':
-            throw new Error(`Windows runner is not supported`)
         case 'darwin':
-            return 'macosx'
+            throw new Error(`Windows/MacOS runners are not supported`)
         default:
             return 'linux'
     }
@@ -39,7 +38,7 @@ const downloadAndBuild = async (version) => {
     const moldUnzipped = await tc.extractZip(moldZip)
     const stripPrefix = await getStripPrefix(moldUnzipped)
     const path = `${moldUnzipped}/${stripPrefix}`
-    if (0 !== await exec.exec(`make -j CXX=clang++ CC=clang`, [], { cwd: path })) {
+    if (0 !== await exec.exec(`make -j CC=clang CXX=clang++`, [], { cwd: path })) {
         throw new Error(`Can not build mold`)
     }
     const cachedPath = await tc.cacheDir(path, TOOL_NAME, version);
