@@ -23,6 +23,10 @@ jobs:
       with: 
         default: ${{ matrix.default }}
     - name: run mold
-      run: mold --help
+      run: |
+        which mold
+        mold --help
     - name: run ld
-      run: ld --help
+      run: |
+        which ld
+        ld --help

@@ -5586,7 +5586,7 @@ const checkOs = () => {
 }
 
 const findInCache = (version) => {
-    const dir = tc.find(TOOL_NAME, version);
+    const dir = tc.find(TOOL_NAME, version, 'x86_64');
     if (dir && dir.length > 0) {
         return dir;
     } else {
@@ -5614,23 +5614,29 @@ const downloadAndBuild = async (version) => {
         throw new Error(`Can not build mold`)
     }
 
-    const make_default = core.getInput('default', { required: false }) || false;
-    if (!make_default) {
-        // remove ld from mold dir
-        await io.rmRF(`${path}/ld`)
-    }
-    const cachedPath = await tc.cacheDir(path, TOOL_NAME, version);
-    return cachedPath
+    const cachedDir = await tc.cacheFile(`${path}/mold`, TOOL_NAME, TOOL_NAME, version, 'x86_64')
+    return cachedDir
 }
 
 const run = async () => {
     try {
-        const os = checkOs();
+        checkOs();
+
         const version = core.getInput('version', { required: true });
         let bin = findInCache(version);
         if (!bin) {
+            core.info(`can not find mold ${version} in cache... downloading`)
             bin = await downloadAndBuild(version);
         }
+
+        const mold = `${bin}/mold`
+
+        core.info(`mold bin: ${mold}`)
+        const make_default = core.getInput('default', { required: false }) || false;
+        if (!make_default) {
+            await io.cp(mold, `${bin}/ld`)
+        }
+
         core.addPath(bin);
     } catch (err) {
         // setFailed logs the message and sets a failing exit code
