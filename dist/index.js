@@ -5570,6 +5570,7 @@ var __webpack_exports__ = {};
 const core = __nccwpck_require__(186);
 const tc = __nccwpck_require__(784);
 const exec = __nccwpck_require__(514);
+const io = __nccwpck_require__(436);
 
 const TOOL_NAME = 'mold'
 
@@ -5608,8 +5609,15 @@ const downloadAndBuild = async (version) => {
     const moldUnzipped = await tc.extractZip(moldZip)
     const stripPrefix = await getStripPrefix(moldUnzipped)
     const path = `${moldUnzipped}/${stripPrefix}`
+
     if (0 !== await exec.exec(`make -j CC=clang CXX=clang++`, [], { cwd: path })) {
         throw new Error(`Can not build mold`)
+    }
+
+    const make_default = core.getInput('default', { required: false }) || false;
+    if (!make_default) {
+        // remove ld from mold dir
+        await io.rmRF(`${path}/ld`)
     }
     const cachedPath = await tc.cacheDir(path, TOOL_NAME, version);
     return cachedPath
@@ -5624,15 +5632,6 @@ const run = async () => {
             bin = await downloadAndBuild(version);
         }
         core.addPath(bin);
-
-        const make_default = core.getInput('default', { required: false }) || false;
-        if (make_default) {
-            if (os === 'macos') {
-                core.warning("MacOS does not allow this action to overwrite /usr/bin/ld. `mold` is added to PATH.");
-                return;
-            }
-            await exec.exec(`sudo cp ${bin}/mold /usr/bin/ld`);
-        }
     } catch (err) {
         // setFailed logs the message and sets a failing exit code
         core.setFailed(err.message);

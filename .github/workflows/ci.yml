@@ -14,13 +14,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
+        default: [true, false]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v1
     - name: Setup mold
       uses: ./
       with: 
-        default: true
+        default: ${{ matrix.default }}
     - name: run mold
       run: mold --help
     - name: run ld
