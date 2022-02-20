@@ -2,7 +2,7 @@
 
 Github Action to install mold (https://github.com/rui314/mold) in PATH or as `/usr/bin/ld`.
 
-Supports only Linux runners.
+Supports only Linux/MacOS runners.
 
 ## Inputs
 
@@ -10,7 +10,7 @@ Supports only Linux runners.
 
 **Required** Release version. Default `"v1.0.3"`.
 
-## `default`
+## `make_default`
 
 **Required** If true, will setup mold as `/usr/bin/ld`. Default `false`.
 
@@ -20,5 +20,5 @@ Supports only Linux runners.
 uses: warchant/setup-mold@v1
 with:
   version: v1.0.3
-  default: true
+  make_default: true
 ```

@@ -26,7 +26,13 @@ jobs:
       run: |
         which mold
         mold --help
-    - name: run ld
+    - name: run ld, expect to be mold
+      if: matrix.default == true
       run: |
         which ld
-        ld --help
+        ld --help | grep "Report error if DT_TEXTREL is set"
+    - name: run ld, expect to not be mold
+      if: matrix.default == false
+      run: |
+        which ld
+        ld --help | grep -v "Report error if DT_TEXTREL is set"

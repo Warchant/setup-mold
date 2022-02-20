@@ -75,6 +75,14 @@ const sanitizeVersion = (version) => {
     return version
 }
 
+const tryMakeDefault = (mold, bin) => {
+    try { await io.cp(mold, `/usr/bin/ld`)      ; return; } catch(e) {/* ignore */}
+    try { await io.cp(mold, `/usr/local/bin/ld`); return; } catch(e) {/* ignore */}
+    try { await io.cp(mold, `${bin}/ld`)        ; return; } catch(e) {/* ignore */}
+
+    core.warning("Was not able to set `mold` as default...")
+}
+
 const run = async () => {
     try {
         checkOs();
@@ -94,9 +102,9 @@ const run = async () => {
         const mold = `${bin}/mold`
 
         core.info(`mold bin: ${mold}`)
-        const make_default = core.getInput('default', { required: false }) || false;
-        if (!make_default) {
-            await io.cp(mold, `${bin}/ld`)
+        const make_default = core.getInput('make_default', { required: false }) || false;
+        if(make_default) {
+            tryMakeDefault(mold, bin)
         }
 
         core.addPath(bin);
