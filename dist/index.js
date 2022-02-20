@@ -8647,6 +8647,9 @@ const checkOs = () => {
 }
 
 const findInCache = (version) => {
+    const all = tc.findAllVersions(TOOL_NAME)
+    core.info(`All versions: ${all}`)
+
     const dir = tc.find(TOOL_NAME, sanitizeVersion(version));
     if (dir && dir.length > 0) {
         return dir;
@@ -8704,11 +8707,19 @@ const sanitizeVersion = (version) => {
     return version
 }
 
+const tryMakeDefault = async (mold, bin) => {
+    try { await io.cp(mold, `/usr/bin/ld`)      ; return; } catch(e) {/* ignore */}
+    try { await io.cp(mold, `/usr/local/bin/ld`); return; } catch(e) {/* ignore */}
+    try { await io.cp(mold, `${bin}/ld`)        ; return; } catch(e) {/* ignore */}
+
+    core.warning("Was not able to set `mold` as default...")
+}
+
 const run = async () => {
     try {
         checkOs();
 
-        const version = core.getInput('version', { required: false })
+        const version = core.getInput('version', { required: false }) || 'v1.0.3'
         const cleanedVersion = semver.clean(version)
         if(!cleanedVersion || cleanedVersion !== sanitizeVersion(version)) {
             core.warning(`Tool cache will not cache this version due to https://github.com/actions/toolkit/issues/1004. Use release version.`)
@@ -8723,9 +8734,9 @@ const run = async () => {
         const mold = `${bin}/mold`
 
         core.info(`mold bin: ${mold}`)
-        const make_default = core.getInput('default', { required: false }) || false;
-        if (!make_default) {
-            await io.cp(mold, `${bin}/ld`)
+        const make_default = core.getInput('make_default', { required: false }) || true;
+        if(make_default) {
+            await tryMakeDefault(mold, bin)
         }
 
         core.addPath(bin);

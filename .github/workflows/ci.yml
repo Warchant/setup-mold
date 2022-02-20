@@ -21,7 +21,7 @@ jobs:
     - name: Setup mold
       uses: ./
       with: 
-        default: ${{ matrix.default }}
+        make_default: ${{ matrix.default }}
     - name: run mold
       run: |
         which mold
@@ -36,3 +36,4 @@ jobs:
       run: |
         which ld
         ld --help | grep -v "Report error if DT_TEXTREL is set"
+    - run: echo $PATH
