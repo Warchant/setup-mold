@@ -105,7 +105,7 @@ const run = async () => {
         const mold = `${bin}/mold`
 
         core.info(`mold bin: ${mold}`)
-        const make_default = core.getInput('make_default', { required: false }) || true;
+        const make_default = core.getInput('make_default', { required: false }) || false;
         if(make_default) {
             await tryMakeDefault(mold, bin)
         }

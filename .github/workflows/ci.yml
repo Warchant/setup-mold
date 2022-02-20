@@ -21,6 +21,7 @@ jobs:
     - name: Setup mold
       uses: ./
       with: 
+        version: v1.0.3
         make_default: ${{ matrix.default }}
     - name: run mold
       run: |
