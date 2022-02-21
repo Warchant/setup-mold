@@ -8,17 +8,17 @@ Supports only Linux runners.
 
 ## `version`
 
-**Required** Release version. Default `"1.1.0"`. List of versions can be found in [versions-manifest.json](./versions-manifest.json)
+Release version. Default `"1.1.0"`. List of versions can be found in [versions-manifest.json](./versions-manifest.json)
 
 ## `make_default`
 
-**Required** If true, will setup mold as `/usr/bin/ld`. Default `false`.
+If true, will setup mold as `/usr/bin/ld`. Default `false`.
 
 ## Example usage
 
 ```yaml
 uses: warchant/setup-mold@v1
 with:
-  version: v1.0.3
+  version: 1.1.0
   make_default: true
 ```

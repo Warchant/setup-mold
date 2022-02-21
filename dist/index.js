@@ -5621,7 +5621,15 @@ const findReleaseFromManifest = async (
     semanticVersionSpec,
     architecture
 ) => {
-    const manifest = JSON.parse(fs.readFileSync('versions-manifest.json', 'utf8'))
+    let manifest;
+    if(fs.existsSync('versions-manifest.json')) {
+        manifest = JSON.parse(fs.readFileSync('versions-manifest.json', 'utf8'))
+    } else {
+        manifest = await tc.getManifestFromRepo(
+            /*owner=*/'Warchant',
+            /*repo=*/'setup-mold'
+        )
+    }
     return await tc.findFromManifest(
         semanticVersionSpec,
         false,

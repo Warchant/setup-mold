@@ -5,8 +5,7 @@ inputs:
   version:
     description: 'mold version'
     required: false
-    # https://github.com/rui314/mold/releases/tag/v1.0.3
-    default: 'v1.0.3'
+    default: '1.1.0'
   make_default:
     description: 'If true, will replace /usr/bin/ld with mold'
     required: false
