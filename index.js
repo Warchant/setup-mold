@@ -1,27 +1,22 @@
 const core = require('@actions/core');
 const tc = require('@actions/tool-cache');
-const exec = require('@actions/exec');
 const io = require('@actions/io');
-const semver = require('semver')
+const fs = require('fs')
 
 const TOOL_NAME = 'mold'
 
 const checkOs = () => {
     switch (process.platform) {
         case 'win32':
-            throw new Error(`Windows runners are not supported`)
         case 'darwin':
-            return 'macos'
+            throw new Error(`${process.platform} runners are not supported`)
         default:
             return 'linux'
     }
 }
 
-const findInCache = (version) => {
-    const all = tc.findAllVersions(TOOL_NAME)
-    core.info(`All versions: ${all}`)
-
-    const dir = tc.find(TOOL_NAME, sanitizeVersion(version));
+const findInCache = (manifest) => {
+    const dir = tc.find(TOOL_NAME, manifest.version);
     if (dir && dir.length > 0) {
         return dir;
     } else {
@@ -29,84 +24,62 @@ const findInCache = (version) => {
     }
 }
 
-const getStripPrefix = async (moldUnzipped) => {
-    const out = await exec.getExecOutput(`ls ${moldUnzipped}`)
-    if (out.exitCode !== 0) {
-        throw new Error(`Can't strip path: ${out}`)
-    }
-    return out.stdout.trimEnd()
+const unpack = async (filename, path) => {
+    if (/\.tar\.gz$/.test(filename)) return tc.extractTar(path)
+    if (/\.zip$/.test(filename)) return tc.extractZip(path)
+    throw Error(`Unknown archive type: ${filename}`)
 }
 
+const download = async (manifest) => {
+    if (manifest.files.length === 0) throw Error(`Error in manifest file: can not find files`)
 
-const isCommit = (str) => {
-    return /[a-fA-F0-9]{32}/.test(str)
-}
-
-const getUrl = (version) => {
-    if(isCommit(version)) {
-        return `https://github.com/rui314/mold/archive/${version}.zip`
-    } else {
-        return `https://github.com/rui314/mold/archive/refs/tags/${version}.zip`
-    }
-}
-
-const downloadAndBuild = async (version) => {
-    const url = getUrl(version)
-    const moldZip = await tc.downloadTool(url)
-    const moldUnzipped = await tc.extractZip(moldZip)
-    const stripPrefix = await getStripPrefix(moldUnzipped)
-    const path = `${moldUnzipped}/${stripPrefix}`
-
-    if (0 !== await exec.exec(`make -j CC=clang CXX=clang++`, [], { cwd: path })) {
-        throw new Error(`Can not build mold`)
-    }
-
-    const cachedDir = await tc.cacheFile(`${path}/mold`, TOOL_NAME, TOOL_NAME, sanitizeVersion(version))
-    return cachedDir
-}
-
-const sanitizeVersion = (version) => {
-    if(isCommit(version)) {
-        return version
-    }
-
-    // it's a tag. remove `v` prefix if it exists
-    if (version.charAt(0) === 'v') {
-        return version.slice(1)
-    }
-
-    return version
+    const file = manifest.files[0]
+    const moldArchive = await tc.downloadTool(file.download_url)
+    const moldUnzipped = await unpack(file.filename, moldArchive)
+    const bin = `${moldUnzipped}/${file.strip_prefix}/bin`
+    return tc.cacheDir(bin, TOOL_NAME, TOOL_NAME, manifest.version)
 }
 
 const tryMakeDefault = async (mold, bin) => {
-    try { await io.cp(mold, `/usr/bin/ld`)      ; return; } catch(e) {/* ignore */}
-    try { await io.cp(mold, `/usr/local/bin/ld`); return; } catch(e) {/* ignore */}
-    try { await io.cp(mold, `${bin}/ld`)        ; return; } catch(e) {/* ignore */}
+    try { await io.cp(mold, `/usr/bin/ld`); return; } catch (e) {/* ignore */ }
+    try { await io.cp(mold, `/usr/local/bin/ld`); return; } catch (e) {/* ignore */ }
+    try { await io.cp(mold, `${bin}/ld`); return; } catch (e) {/* ignore */ }
 
     core.warning("Was not able to set `mold` as default...")
+}
+
+const findReleaseFromManifest = async (
+    semanticVersionSpec,
+    architecture
+) => {
+    const manifest = JSON.parse(fs.readFileSync('versions-manifest.json', 'utf8'))
+    return await tc.findFromManifest(
+        semanticVersionSpec,
+        false,
+        manifest,
+        architecture
+    );
 }
 
 const run = async () => {
     try {
         checkOs();
 
-        const version = core.getInput('version', { required: false }) || 'v1.0.3'
-        const cleanedVersion = semver.clean(version)
-        if(!cleanedVersion || cleanedVersion !== sanitizeVersion(version)) {
-            core.warning(`Tool cache will not cache this version due to https://github.com/actions/toolkit/issues/1004. Use release version.`)
+        const version = core.getInput('version', { required: false }) || '1.1.0'
+        const manifest = await findReleaseFromManifest(version, 'x64')
+        if (!manifest) {
+            core.setFailed(`Can not find version ${version} in https://github.com/Warchant/setup-mold/blob/main/versions-manifest.json file`)
         }
 
-        let bin = findInCache(version);
+        let bin = findInCache(manifest);
         if (!bin) {
-            core.info(`can not find mold ${version} in cache... downloading`)
-            bin = await downloadAndBuild(version);
+            core.info(`can not find mold ${manifest.version} in cache... downloading`)
+            bin = await download(manifest);
         }
 
         const mold = `${bin}/mold`
-
-        core.info(`mold bin: ${mold}`)
         const make_default = core.getInput('make_default', { required: false }) || false;
-        if(make_default) {
+        if (make_default) {
             await tryMakeDefault(mold, bin)
         }
 

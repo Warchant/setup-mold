@@ -1,0 +1,16 @@
+[
+    {
+        "version": "1.1.0",
+        "stable": true,
+        "release_url": "https://github.com/rui314/mold/releases/tag/v1.1",
+        "files": [
+            {
+                "filename": "mold-1.1-x86_64-linux.tar.gz",
+                "arch": "x64",
+                "platform": "linux",
+                "download_url": "https://github.com/rui314/mold/releases/download/v1.1/mold-1.1-x86_64-linux.tar.gz",
+                "strip_prefix": "mold-1.1-x86_64-linux"
+            }
+        ]
+    }
+]

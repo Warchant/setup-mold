@@ -2,13 +2,13 @@
 
 Github Action to install mold (https://github.com/rui314/mold) in PATH or as `/usr/bin/ld`.
 
-Supports only Linux/MacOS runners.
+Supports only Linux runners.
 
 ## Inputs
 
 ## `version`
 
-**Required** Release version. Default `"v1.0.3"`.
+**Required** Release version. Default `"1.1.0"`. List of versions can be found in [versions-manifest.json](./versions-manifest.json)
 
 ## `make_default`
 
